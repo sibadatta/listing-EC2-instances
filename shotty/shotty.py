@@ -16,6 +16,77 @@ def filter_instances(project):
     return instances
 
 @click.group()
+def cli():
+    """shotty manages snapshots"""
+
+@cli.group('snapshots')
+def snapshots():
+    """command for snapshots"""
+
+@snapshots.command('list')
+@click.option('--project',default=None,
+    help="Only snapshots for project (tag Project:<name>)")
+
+def list_snapshots(project):
+    "List EC2 snapshots"
+
+    instances=filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            for s in v.snapshots.all():
+                print(', '.join((
+                    s.id,
+                    v.id,
+                    i.id,
+                    s.state,
+                    s.progress,
+                    s.start_time.strftime("%c")
+                )))
+    return
+
+@instances.command('snapshot',
+    help="create snapshots for all volume")
+@click.option('--project',default=None,
+    help="Only instances for project")
+
+def create_snapshots(project):
+    "create snapshots for EC2 instances"
+
+    instances=filter_instances(project)
+
+    for i in instances:
+        i.stop()
+        for v in i.volumes.all():
+            print("Creating snapshot of {0}".format(v.id))
+            v.create_snapshot(Description="created by snapshotalyzer 3000")
+    return
+
+@cli.group('volumes')
+def volumes():
+    """command for volumes"""
+
+@volumes.command('list')
+@click.option('--project',default=None,
+    help="Only volumes for project (tag Project:<name>)")
+
+def list_volumes(project):
+    "List EC2 volumes"
+
+    instances=filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            print(', '.join((
+                v.id,
+                i.id,
+                v.state,
+                str(v.size)+ "GiB" ,
+                v.encrypted and "Encrypted" or "Not encrypted"
+            )))
+    return
+
+@cli.group('instances')
 def instances():
     """command for instances"""
 
