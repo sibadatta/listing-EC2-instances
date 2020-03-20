@@ -18,7 +18,7 @@ def filter_instances(project):
 
 def has_pending_snapshots(volume):
     snapshots=list(volume.snapshots.all())
-    retun snapshots and snapshots[0].state == 'pending'
+    return snapshots and snapshots[0].state == 'pending'
 
 @click.group()
 def cli():
@@ -71,7 +71,7 @@ def create_snapshots(project):
             if has_pending_snapshots(v):
                 print(" Skipping {0}, snapshot already in progress")
                 continue
-                
+
             print("Creating snapshot of {0}".format(v.id))
             v.create_snapshot(Description="created by snapshotalyzer 3000")
 
